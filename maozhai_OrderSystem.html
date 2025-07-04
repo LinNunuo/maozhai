@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>❤️猫宅点单系统❤️</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6cf7;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --dark-bg: #212529;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --neumorphism-shadow: 3px 3px 6px #d1d9e6, -3px -3px 6px #ffffff;
+            --gradient-start: #4a6cf7;
+            --gradient-end: #3a5bd9;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            padding: 15px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 15px 0;
+            animation: fadeInDown 0.8s ease-out;
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: var(--secondary-color);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            padding-bottom: 8px;
+        }
+        
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 3px;
+        }
+        
+        .card-title i {
+            font-size: 1.1rem;
+        }
+        
+        /* 选择器区域 */
+        .selector-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.2);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: var(--neumorphism-shadow);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 4px 4px 8px #d1d9e6, -4px -4px 8px #ffffff;
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(145deg, #4a6cf7, #3a5bd9);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(145deg, #6c757d, #5c6573);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(145deg, #28a745, #218838);
+            color: white;
+        }
+        
+        .btn-info {
+            background: linear-gradient(145deg, #17a2b8, #138496);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(145deg, #ffc107, #e0a800);
+            color: black;
+        }
+        
+        /* 选择器弹出层 */
+        .picker-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .picker-container {
+            background: white;
+            width: 95%;
+            max-width: 700px;
+            max-height: 90vh;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation-fill-mode: forwards;
+        }
+        
+        /* 选择器头部 */
+        .picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(145deg, #4a6cf7, #3a5bd9);
+            color: white;
+        }
+        
+        .picker-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .picker-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .picker-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .picker-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 选择器主体 */
+        .picker-body {
+            display: flex;
+            height: 350px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .picker-columns-container {
+            display: flex;
+            flex: 1;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 12px;
+            gap: 12px;
+        }
+        
+        .picker-column {
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            overflow-y: auto;
+        }
+        
+        .column-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-size: 0.95rem;
+        }
+        
+        .picker-item {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .picker-item:hover {
+            background-color: rgba(74, 108, 247, 0.1);
+        }
+        
+        .picker-item.selected {
+            background-color: rgba(74, 108, 247, 0.2);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .picker-item .item-icon {
+            font-size: 1rem;
+        }
+        
+        /* 已选信息显示区 */
+        .selected-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .selected-items-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .selected-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .item-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+        }
+        
+        .item-price {
+            font-weight: bold;
+            color: var(--success-color);
+            font-size: 0.95rem;
+        }
+        
+        .item-details {
+            color: var(--secondary-color);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 1rem;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        /* 订单生成区 */
+        .order-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .order-details {
+            background: rgba(74, 108, 247, 0.03);
+            border-radius: 12px;
+            padding: 15px;
+        }
+        
+        .order-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .order-info-item {
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .order-info-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .order-info-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .total-price {
+            color: var(--success-color);
+            font-size: 1.3rem;
+        }
+        
+        .order-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            font-size: 0.95rem;
+        }
+        
+        /* 预览弹窗 */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .preview-container {
+            background: #2d3748;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation-fill-mode: forwards;
+        }
+        
+        .preview-header {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #63b3ed;
+        }
+        
+        .preview-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-content {
+            padding: 15px;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            background: rgba(0, 0, 0, 0.2);
+            flex: 1;
+        }
+        
+        .json-key {
+            color: #63b3ed;
+        }
+        
+        .json-string {
+            color: #a0d468;
+        }
+        
+        .json-number {
+            color: #ffce54;
+        }
+        
+        /* 加载指示器 */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.3s;
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(74, 108, 247, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        /* 确认订单弹窗 */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1200;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .confirm-container {
+            background: white;
+            width: 95%;
+            max-width: 500px;
+            max-height: 85vh;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation-fill-mode: forwards;
+        }
+        
+        .confirm-header {
+            padding: 15px;
+            background: linear-gradient(145deg, #4a6cf7, #3a5bd9);
+            color: white;
+            text-align: center;
+        }
+        
+        .confirm-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+        
+        .confirm-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 55vh;
+        }
+        
+        .order-preview {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+        
+        .order-preview-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-id {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+        }
+        
+        .order-timestamp {
+            color: var(--secondary-color);
+            font-size: 0.85rem;
+        }
+        
+        .order-items-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .order-item-preview {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.9rem;
+        }
+        
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding-top: 8px;
+            border-top: 2px solid var(--primary-color);
+        }
+        
+        .confirm-footer {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.02);
+            flex-wrap: wrap;
+        }
+        
+        .confirm-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        /* 页脚 */
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            color: var(--secondary-color);
+        }
+        
+        .author-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .author-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .author-wechat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #4a6cf7, #3a5bd9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        
+        /* 消息提示 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 3000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* 动画 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 100%;
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 0.95rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .selected-items-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .picker-columns-container {
+                flex-direction: column;
+            }
+            
+            .picker-column {
+                min-width: 100%;
+            }
+            
+            .picker-header {
+                flex-wrap: wrap;
+            }
+            
+            .picker-buttons {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .confirm-footer {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .order-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .picker-body {
+                height: 300px;
+            }
+            
+            .picker-button {
+                padding: 5px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .confirm-container {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+    
+    <div class="toast" id="toast">操作成功！</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>❤️猫宅点单系统❤️</h1>
+            <p>作者：聆诺诺 2025.7.4 07:56</p>
+        </div>
+        
+        <div class="card selector-area">
+            <h2 class="card-title"><i class="fas fa-mouse-pointer"></i> 数据选择器</h2>
+            
+            <input type="text" 
+                   class="input-field" 
+                   id="dataSelector" 
+                   placeholder="点击选择服务项目"
+                   readonly>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="selectBtn">
+                    <i class="fas fa-list"></i> 打开选择器
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">
+                    <i class="fas fa-trash-alt"></i> 清空选择
+                </button>
+                <button class="btn btn-info" id="previewBtn">
+                    <i class="fas fa-eye"></i> 预览数据
+                </button>
+                <button class="btn btn-success" id="generateOrderBtn">
+                    <i class="fas fa-file-invoice-dollar"></i> 生成订单
+                </button>
+            </div>
+        </div>
+        
+        <div class="card selected-info">
+            <h2 class="card-title"><i class="fas fa-shopping-cart"></i> 已选服务项目</h2>
+            <div id="selectedItemsContainer" class="selected-items-container">
+                <!-- 已选项目将动态生成在这里 -->
+            </div>
+        </div>
+        
+        <div class="card order-container">
+            <div class="order-header">
+                <h2 class="card-title"><i class="fas fa-receipt"></i> 订单信息</h2>
+                <div id="orderTime" class="order-time">未生成订单</div>
+            </div>
+            
+            <div id="orderDetails" class="order-details">
+                <div class="order-info">
+                    <div class="order-info-item">
+                        <div class="order-info-label">总金额</div>
+                        <div id="totalPrice" class="order-info-value total-price">0.00 元</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">服务项目数</div>
+                        <div id="itemCount" class="order-info-value">0</div>
+                    </div>
+                </div>
+                
+                <div class="order-items" id="orderItemsContainer">
+                    <!-- 订单项目将动态生成在这里 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 选择器弹出层 -->
+    <div class="picker-overlay" id="pickerOverlay">
+        <div class="picker-container">
+            <div class="picker-header">
+                <div class="picker-title">
+                    <i class="fas fa-layer-group"></i>
+                    <span id="currentPath">选择服务类型</span>
+                </div>
+                <div class="picker-buttons">
+                    <button class="picker-button" id="backBtn">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </button>
+                    <button class="picker-button" id="pickerCancelBtn">
+                        <i class="fas fa-times"></i> 取消
+                    </button>
+                    <button class="picker-button" id="pickerConfirmBtn">
+                        <i class="fas fa-check"></i> 确定
+                    </button>
+                </div>
+            </div>
+            <div class="picker-body">
+                <div class="picker-columns-container" id="pickerColumnsContainer">
+                    <!-- 选择列将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 预览弹窗 -->
+    <div class="preview-overlay" id="previewOverlay">
+        <div class="preview-container">
+            <div class="preview-header">
+                <div class="preview-title">
+                    <i class="fas fa-database"></i> JSON数据全览
+                </div>
+                <button class="preview-close" id="previewCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="preview-content" id="jsonPreview">
+                <!-- JSON数据预览将在这里显示 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 确认订单弹窗 -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-container">
+            <div class="confirm-header">
+                <div class="confirm-title">
+                    <i class="fas fa-check-circle"></i> 订单确认
+                </div>
+            </div>
+            <div class="confirm-body">
+                <div class="order-preview">
+                    <div class="order-preview-header">
+                        <div class="order-id">订单号: <span id="confirmOrderId"></span></div>
+                        <div class="order-timestamp" id="confirmOrderTime"></div>
+                    </div>
+                    <div class="order-items-preview" id="confirmOrderItems">
+                        <!-- 订单项目预览 -->
+                    </div>
+                    <div class="order-total">
+                        <div>总计:</div>
+                        <div id="confirmTotalPrice">0.00 元</div>
+                    </div>
+                </div>
+                <a href="https://xxx.xxx.xxx" class="confirm-link" id="orderLink" target="_blank">跳转到订单系统</a>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" id="confirmCancelBtn">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button class="btn btn-success" id="confirmCopyBtn">
+                    <i class="fas fa-copy"></i> 复制订单
+                </button>
+                <button class="btn btn-primary" id="confirmSaveBtn">
+                    <i class="fas fa-download"></i> 保存为图片
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="author-info">
+            <div class="author-name">该网页所有权归 聆诺诺 个人所有</div>
+            <div class="author-wechat">
+                <i class="fab fa-weixin"></i>
+                <span>微信号：YL0805201314</span>
+            </div>
+            <div class="social-icons">
+                <a href="#" class="social-icon">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="social-icon">
+                    <i class="fab fa-weibo"></i>
+                </a>
+                <a href="#" class="social-icon">
+                    <i class="fab fa-qq"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新为新的JSON数据结构
+        const jsonData = {
+            "游戏服务": {
+                "王者荣耀": {
+                    "娱乐": {
+                        "8r/局": 8,
+                        "18r/小时": 18
+                    },
+                    "排位娱乐": {
+                        "10r/局": 10,
+                        "20r/小时": 20
+                    },
+                    "技术娱乐": {
+                        "12r/局": 12,
+                        "22r/小时": 22
+                    },
+                    "技术排位": {
+                        "12r/局": 14,
+                        "22r/小时": 24
+                    },
+                    "3r/包赢 输一补二": 3,
+                    "5.2r/甜蜜单": 5.2,
+                    "5r/晋级赛":5
+                },
+                "和平精英": {
+                    "娱乐": {
+                        "10r/半小时": 10,
+                        "16r/小时": 16
+                    },
+                    "技术": {
+                        "16r/半小时": 16,
+                        "24r/小时": 24
+                    },
+                    "地铁模式": {
+                        "单护": {
+                            "9r/300w": 9,
+                            "15r/500w": 15,
+                            "30r/1000w": 30
+                        },
+                        "双护": {
+                            "15r/400w": 15,
+                            "25r/600w": 25,
+                            "50r/1200w": 50
+                        },
+                        "三护": {
+                            "25r/500w": 25,
+                            "35r/700w": 35,
+                            "60r/1200w": 60
+                        },
+                        "纯娱乐": {
+                            "15r/0.5h 无保底": 15
+                        },
+                    "3r/包赢 输一补二": 3,
+                    "5.2r/甜蜜单": 5.2,
+                    "5r/晋级赛":5
+                    }
+                }
+            },
+            "陪伴区": {
+                "文聊": {
+                    "15r/半小时": 15,
+                    "20r/小时": 20
+                },
+                "语聊": {
+                    "18r/半小时": 18,
+                    "25r/小时": 25
+                },
+                "哄睡": {
+                    "18r/半小时": 18,
+                    "35r/小时": 35
+                },
+                "其他": {
+                    "电话叫醒 15r/3次": 15,
+                    "指定文案 5r/段": 5,
+                    "好友位 188r/永久": 188,
+                    "头像 13r/天": 13,
+                    "骂人 15r/半小时": 15,
+                    "骂人 30r/小时": 30,
+                    "指定/头牌+3r":3,
+                    "凌晨+2r":2,
+                    "null":0,
+                }
+            }
+        };
+
+        // DOM元素
+        const loader = document.getElementById('loader');
+        const toast = document.getElementById('toast');
+        const dataSelector = document.getElementById('dataSelector');
+        const pickerOverlay = document.getElementById('pickerOverlay');
+        const pickerColumnsContainer = document.getElementById('pickerColumnsContainer');
+        const currentPathElement = document.getElementById('currentPath');
+        const backBtn = document.getElementById('backBtn');
+        const pickerCancelBtn = document.getElementById('pickerCancelBtn');
+        const pickerConfirmBtn = document.getElementById('pickerConfirmBtn');
+        const selectBtn = document.getElementById('selectBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const generateOrderBtn = document.getElementById('generateOrderBtn');
+        const selectedItemsContainer = document.getElementById('selectedItemsContainer');
+        const previewOverlay = document.getElementById('previewOverlay');
+        const jsonPreview = document.getElementById('jsonPreview');
+        const previewCloseBtn = document.getElementById('previewCloseBtn');
+        const orderTimeElement = document.getElementById('orderTime');
+        const totalPriceElement = document.getElementById('totalPrice');
+        const itemCountElement = document.getElementById('itemCount');
+        const orderItemsContainer = document.getElementById('orderItemsContainer');
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const confirmOrderId = document.getElementById('confirmOrderId');
+        const confirmOrderTime = document.getElementById('confirmOrderTime');
+        const confirmOrderItems = document.getElementById('confirmOrderItems');
+        const confirmTotalPrice = document.getElementById('confirmTotalPrice');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmCopyBtn = document.getElementById('confirmCopyBtn');
+        const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+        const orderLink = document.getElementById('orderLink');
+
+        // 状态管理
+        let selectedItems = [];
+        let currentNavigationPath = [];
+        let currentData = jsonData;
+
+        // 图标映射
+        const categoryIcons = {
+            "游戏服务": "fa-gamepad",
+            "王者荣耀": "fa-crown",
+            "和平精英": "fa-shield-alt",
+            "娱乐": "fa-smile",
+            "排位娱乐": "fa-trophy",
+            "技术娱乐": "fa-microchip",
+            "技术排位": "fa-microchip",
+            "地铁模式": "fa-subway",
+            "单护": "fa-user-shield",
+            "双护": "fa-users",
+            "三护": "fa-users",
+            "纯娱乐": "fa-gamepad",
+            "陪伴服务": "fa-comments",
+            "文聊": "fa-keyboard",
+            "语聊": "fa-phone-alt",
+            "哄睡": "fa-moon",
+            "特殊服务": "fa-star",
+            "电话叫醒": "fa-bell",
+            "指定文案": "fa-file-alt",
+            "好友位": "fa-user-friends"
+        };
+
+        // 初始化
+        function init() {
+            // 隐藏加载指示器
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 300);
+            }, 500);
+            
+            bindEvents();
+            loadFromCache();
+            renderSelectedItems();
+            updateInputField();
+        }
+
+        // 显示提示消息
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 打开选择器
+            selectBtn.addEventListener('click', showPicker);
+            dataSelector.addEventListener('click', showPicker);
+            
+            // 清空选择
+            clearBtn.addEventListener('click', clearSelection);
+            
+            // 预览JSON
+            previewBtn.addEventListener('click', showJsonPreview);
+            
+            // 生成订单
+            generateOrderBtn.addEventListener('click', generateOrder);
+            
+            // 选择器按钮
+            pickerCancelBtn.addEventListener('click', hidePicker);
+            pickerConfirmBtn.addEventListener('click', confirmSelection);
+            backBtn.addEventListener('click', goBack);
+            
+            // 预览关闭
+            previewCloseBtn.addEventListener('click', hideJsonPreview);
+            
+            // 确认订单弹窗按钮
+            confirmCancelBtn.addEventListener('click', () => confirmOverlay.style.display = 'none');
+            confirmCopyBtn.addEventListener('click', copyOrderInfo);
+            confirmSaveBtn.addEventListener('click', saveOrderAsImage);
+        }
+
+        // 从缓存加载数据
+        function loadFromCache() {
+            const cachedData = localStorage.getItem('json-selector-cache');
+            if (cachedData) {
+                try {
+                    selectedItems = JSON.parse(cachedData);
+                    renderSelectedItems();
+                } catch (e) {
+                    console.error('Error parsing cached data:', e);
+                }
+            }
+        }
+
+        // 保存数据到缓存
+        function saveToCache() {
+            localStorage.setItem('json-selector-cache', JSON.stringify(selectedItems));
+        }
+
+        // 更新输入框显示
+        function updateInputField() {
+            if (selectedItems.length === 0) {
+                dataSelector.value = '';
+                dataSelector.placeholder = '点击选择服务项目';
+            } else {
+                const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+                dataSelector.value = `已选择${selectedItems.length}个项目 | 总计: ${total.toFixed(2)}元`;
+            }
+        }
+
+        // 显示选择器
+        function showPicker() {
+            currentNavigationPath = [];
+            currentData = jsonData;
+            pickerOverlay.style.display = 'flex';
+            renderPickerColumns();
+        }
+
+        // 隐藏选择器
+        function hidePicker() {
+            pickerOverlay.style.display = 'none';
+        }
+
+        // 返回上一级
+        function goBack() {
+            if (currentNavigationPath.length > 0) {
+                currentNavigationPath.pop();
+                updateNavigation();
+            }
+        }
+
+        // 更新导航路径
+        function updateNavigation() {
+            let current = jsonData;
+            let path = '';
+            
+            for (const key of currentNavigationPath) {
+                current = current[key];
+                path += path ? ' > ' + key : key;
+            }
+            
+            currentData = current;
+            currentPathElement.textContent = path || '选择服务类型';
+            renderPickerColumns();
+        }
+
+        // 渲染选择列
+        function renderPickerColumns() {
+            pickerColumnsContainer.innerHTML = '';
+            
+            if (typeof currentData === 'object') {
+                createColumn(currentData, currentNavigationPath.length > 0 ? '选择子项目' : '选择服务类型');
+            }
+        }
+
+        // 创建选择列
+        function createColumn(data, title) {
+            const column = document.createElement('div');
+            column.className = 'picker-column';
+            
+            const titleElement = document.createElement('div');
+            titleElement.className = 'column-title';
+            titleElement.textContent = title;
+            column.appendChild(titleElement);
+            
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const item = document.createElement('div');
+                    item.className = 'picker-item';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = `fas ${categoryIcons[key] || 'fa-cube'} item-icon`;
+                    
+                    const text = document.createElement('span');
+                    text.textContent = key;
+                    
+                    item.appendChild(icon);
+                    item.appendChild(text);
+                    
+                    item.addEventListener('click', () => {
+                        handleItemClick(key, data[key]);
+                    });
+                    
+                    column.appendChild(item);
+                }
+            }
+            
+            pickerColumnsContainer.appendChild(column);
+            pickerColumnsContainer.scrollLeft = pickerColumnsContainer.scrollWidth;
+        }
+
+        // 处理项目点击
+        function handleItemClick(key, value) {
+            if (typeof value === 'object') {
+                // 导航到下一级
+                currentNavigationPath.push(key);
+                updateNavigation();
+            } else if (typeof value === 'number') {
+                // 处理最终选项（数字值）
+                const path = [...currentNavigationPath, key];
+                const pathString = path.join(' > ');
+                
+                // 检查是否已选择
+                const existingIndex = selectedItems.findIndex(item => 
+                    item.pathString === pathString
+                );
+                
+                if (existingIndex === -1) {
+                    // 添加新项目
+                    selectedItems.push({
+                        path: [...path],
+                        pathString: pathString,
+                        price: value,
+                        name: path[path.length - 1],
+                        displayText: `${path[path.length - 1]}: ${value}元`
+                    });
+                    
+                    renderSelectedItems();
+                    saveToCache();
+                }
+            }
+        }
+
+        // 确认选择
+        function confirmSelection() {
+            hidePicker();
+            renderSelectedItems();
+            saveToCache();
+            updateInputField();
+        }
+
+        // 清空选择
+        function clearSelection() {
+            selectedItems = [];
+            renderSelectedItems();
+            updateOrderDetails();
+            saveToCache();
+            updateInputField();
+            showToast('选择已清空');
+        }
+
+        // 渲染已选项目
+        function renderSelectedItems() {
+            selectedItemsContainer.innerHTML = '';
+            
+            if (selectedItems.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.className = 'empty-message';
+                emptyMsg.textContent = '暂无选择的服务项目';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.style.padding = '20px';
+                emptyMsg.style.color = '#6c757d';
+                selectedItemsContainer.appendChild(emptyMsg);
+                return;
+            }
+            
+            selectedItems.forEach((item, index) => {
+                const selectedItem = document.createElement('div');
+                selectedItem.className = 'selected-item';
+                
+                const header = document.createElement('div');
+                header.className = 'item-header';
+                
+                const title = document.createElement('div');
+                title.className = 'item-title';
+                title.textContent = item.displayText;
+                
+                const price = document.createElement('div');
+                price.className = 'item-price';
+                price.textContent = item.price.toFixed(2) + ' 元';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.addEventListener('click', () => {
+                    selectedItems.splice(index, 1);
+                    renderSelectedItems();
+                    updateOrderDetails();
+                    saveToCache();
+                    updateInputField();
+                    showToast('已移除项目');
+                });
+                
+                header.appendChild(title);
+                header.appendChild(price);
+                
+                const details = document.createElement('div');
+                details.className = 'item-details';
+                details.textContent = item.pathString;
+                
+                selectedItem.appendChild(header);
+                selectedItem.appendChild(details);
+                selectedItem.appendChild(removeBtn);
+                
+                selectedItemsContainer.appendChild(selectedItem);
+            });
+            
+            updateOrderDetails();
+        }
+
+        // 更新订单详情
+        function updateOrderDetails() {
+            const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+            totalPriceElement.textContent = total.toFixed(2) + ' 元';
+            itemCountElement.textContent = selectedItems.length;
+        }
+
+        // 生成订单
+        function generateOrder() {
+            if (selectedItems.length === 0) {
+                showToast('请先选择至少一个服务项目');
+                return;
+            }
+            
+            const now = new Date();
+            orderTimeElement.textContent = now.toLocaleString();
+            
+            // 渲染订单项目
+            orderItemsContainer.innerHTML = '';
+            selectedItems.forEach(item => {
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                
+                const name = document.createElement('div');
+                name.textContent = item.displayText;
+                
+                const price = document.createElement('div');
+                price.textContent = item.price.toFixed(2) + ' 元';
+                
+                orderItem.appendChild(name);
+                orderItem.appendChild(price);
+                orderItemsContainer.appendChild(orderItem);
+            });
+            
+            // 显示确认订单弹窗
+            showConfirmOrder();
+            
+            // 滚动到订单区域
+            document.querySelector('.order-container').scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            showToast('订单已生成');
+        }
+        
+        // 显示确认订单弹窗
+        function showConfirmOrder() {
+            const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+            const now = new Date();
+            const orderId = 'ORD' + now.getTime();
+            
+            confirmOrderId.textContent = orderId;
+            confirmOrderTime.textContent = now.toLocaleString();
+            confirmTotalPrice.textContent = total.toFixed(2) + ' 元';
+            
+            // 更新订单项目预览
+            confirmOrderItems.innerHTML = '';
+            selectedItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'order-item-preview';
+                
+                const name = document.createElement('div');
+                name.textContent = item.displayText;
+                
+                const price = document.createElement('div');
+                price.textContent = item.price.toFixed(2) + ' 元';
+                
+                itemElement.appendChild(name);
+                itemElement.appendChild(price);
+                confirmOrderItems.appendChild(itemElement);
+            });
+            
+            // 显示弹窗
+            confirmOverlay.style.display = 'flex';
+        }
+
+        // 复制订单信息
+        function copyOrderInfo() {
+            const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+            const now = new Date();
+            const orderId = 'ORD' + now.getTime();
+            
+            let orderText = `订单号: ${orderId}\n`;
+            orderText += `订单时间: ${now.toLocaleString()}\n\n`;
+            orderText += "服务项目:\n";
+            
+            selectedItems.forEach(item => {
+                orderText += `- ${item.displayText}: ${item.price.toFixed(2)}元\n`;
+            });
+            
+            orderText += `\n总计: ${total.toFixed(2)}元\n`;
+            orderText += "订单系统链接: https://xxx.xxx.xxx";
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(orderText).then(() => {
+                showToast('订单信息已复制到剪贴板！');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                showToast('复制失败，请手动复制');
+            });
+        }
+
+        // 保存订单为图片 (修复版)
+        function saveOrderAsImage() {
+            const orderPreview = document.querySelector('.order-preview');
+            
+            // 添加加载指示器
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            
+            // 设置超时防止长时间无响应
+            const timeout = setTimeout(() => {
+                loader.style.display = 'none';
+                showToast('保存超时，请重试');
+            }, 10000);
+            
+            html2canvas(orderPreview, {
+                scale: 2, // 提高清晰度
+                useCORS: true, // 允许跨域图片
+                logging: false // 禁用日志
+            }).then(canvas => {
+                clearTimeout(timeout);
+                loader.style.display = 'none';
+                
+                try {
+                    const link = document.createElement('a');
+                    link.download = `订单信息-${new Date().getTime()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    showToast('图片已保存');
+                } catch (error) {
+                    console.error('保存图片失败:', error);
+                    showToast('保存失败，请重试');
+                }
+            }).catch(error => {
+                clearTimeout(timeout);
+                loader.style.display = 'none';
+                console.error('html2canvas错误:', error);
+                showToast('保存失败，请重试');
+            });
+        }
+
+        // 显示JSON预览
+        function showJsonPreview() {
+            jsonPreview.innerHTML = syntaxHighlight(JSON.stringify(jsonData, null, 2));
+            previewOverlay.style.display = 'flex';
+        }
+
+        // 隐藏JSON预览
+        function hideJsonPreview() {
+            previewOverlay.style.display = 'none';
+        }
+
+        // JSON语法高亮
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // 初始化应用
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
